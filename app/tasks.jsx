@@ -4,21 +4,13 @@ import { View, Text, StyleSheet, ActivityIndicator, FlatList,Button } from "reac
 import {useRouter} from "expo-router";
 
 export default function TasksPage() {
-  const { goal } = useLocalSearchParams();
-  const [tasks, setTasks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { tasks,goal } = useLocalSearchParams();
   const router = useRouter();
-
+  const [loading, setLoading] = useState(true);
+ 
+  const taskList=JSON.parse(tasks);
   useEffect(() => {
-    setTimeout(() => {
-      setTasks([
-        "目的を分析する",
-        "必要なステップを洗い出す",
-        "優先順位をつける",
-        "スケジュールを作る",
-      ]);
-      setLoading(false);
-    }, 1000);
+    setLoading(false);
   }, []);
 
   if (loading) {
@@ -35,11 +27,13 @@ export default function TasksPage() {
       <Text style={styles.title}>目的: {goal}</Text>
   
       <FlatList
-        data={tasks}
+        data={taskList}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.taskItem}>
-            <Text style={styles.taskText}>• {item}</Text>
+            <Text style={styles.taskText}>
+              • {item.description}
+            </Text>
           </View>
         )}
       />

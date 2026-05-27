@@ -5,6 +5,9 @@
       "expo-router"
     ],
     "name": "goal",
-    "slug": "goal"
+    "slug": "goal",
+    "ios": {
+      "bundleIdentifier": "com.anonymous.goal"
+    }
   }
 }

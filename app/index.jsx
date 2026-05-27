@@ -17,14 +17,35 @@ export default function Page() {
   const router = useRouter();
 
   
-  const handleGenerate = () => {
-    if (!goal.trim()) return;
-    router.push({
-      pathname: "/tasks",
-      params: { goal },
-    });
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch(
+        "https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/generateTasks",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ goal }),
+        }
+      );
+  
+      const text = await response.text();
+      const data = JSON.parse(text);
+  
+      router.push({
+        pathname: "/tasks",
+        params: {
+          tasks: JSON.stringify(data.tasks),
+          goal: goal,
+        },
+      });
+  
+    } catch (error) {
+      console.error("Error:", error);
+    }
   };
-
+  
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <KeyboardAvoidingView
@@ -48,7 +69,7 @@ export default function Page() {
               onSubmitEditing={Keyboard.dismiss}
             />
 
-            <Button title="タスクを生成" onPress={handleGenerate} />
+            <Button title="タスクを生成" onPress={fetchTasks} />
           </View>
         </View>
       </KeyboardAvoidingView>
