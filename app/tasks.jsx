@@ -1,14 +1,17 @@
 import { useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, FlatList,Button } from "react-native";
-import {useRouter} from "expo-router";
+import { View, Text, StyleSheet, ActivityIndicator, FlatList, Button } from "react-native";
+import { useRouter } from "expo-router";
 
 export default function TasksPage() {
-  const { tasks,goal } = useLocalSearchParams();
+  const { tasks, goal } = useLocalSearchParams();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
- 
-  const taskList=JSON.parse(tasks);
+
+  const taskList = tasks ? JSON.parse(tasks) : [];
+  console.log("RAW TASKS:", tasks);
+
+
   useEffect(() => {
     setLoading(false);
   }, []);
@@ -25,19 +28,17 @@ export default function TasksPage() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>目的: {goal}</Text>
-  
+
       <FlatList
         data={taskList}
         keyExtractor={(item, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.taskItem}>
-            <Text style={styles.taskText}>
-              • {item.description}
-            </Text>
+            <Text style={styles.taskText}>• {item.description}</Text>
           </View>
         )}
       />
-  
+
       <Button title="ホームに戻る" onPress={() => router.push("/")} />
     </View>
   );
