@@ -1,4 +1,5 @@
 import { useState } from "react";
+
 import {
   StyleSheet,
   Text,
@@ -12,13 +13,21 @@ import {
 } from "react-native";
 import { useRouter } from "expo-router";
 
+function generateUUID() {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export default function Page() {
   const [goal, setGoal] = useState("");
   const router = useRouter();
-
   
   const fetchTasks = async () => {
     try {
+      const goalId = generateUUID();
       const response = await fetch(
         "https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/generateTasks",
         {
@@ -38,6 +47,7 @@ export default function Page() {
         params: {
           tasks: JSON.stringify(data.tasks),
           goal: goal,
+          goalId:goalId,
         },
       });
   
