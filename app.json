@@ -8,6 +8,9 @@
     "slug": "goal",
     "ios": {
       "bundleIdentifier": "com.anonymous.goal"
+    },
+    "android": {
+      "package": "com.anonymous.goal"
     }
   }
 }

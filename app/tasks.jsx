@@ -8,11 +8,12 @@ export default function TasksPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
-  const taskList = tasks ? JSON.parse(tasks) : [];
-  console.log("TASKLIST PARSED:", taskList);
   useEffect(() => {
     setLoading(false);
   }, []);
+
+  const taskList = tasks ? JSON.parse(tasks) : [];
+  console.log("TASKLIST PARSED:", taskList);
 
   const [newTask, setNewTask] = useState("");
   const [taskListState, setTaskListState] = useState(taskList);
