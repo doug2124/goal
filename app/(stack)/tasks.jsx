@@ -3,6 +3,11 @@ import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, FlatList, Button,TextInput } from "react-native";
 import { useRouter } from "expo-router";
 
+export const options = {
+  headerShown:true,
+  headerBackVisible: true,
+};
+
 export default function TasksPage() {
   const { tasks, goal, goalId } = useLocalSearchParams();
   const router = useRouter();

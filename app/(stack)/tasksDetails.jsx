@@ -86,10 +86,10 @@ export default function TasksDetails() {
   }, [goalId]);
 
   return (
-    <SafeAreaView style={{ flex: 1,backgroundColor:"#D3D3D3" }}>
+    <SafeAreaView style={{ flex: 1 }}>
       
       {loading ? (
-      <View style={styles.loadingContainer}>
+      <View style={styles.center}>
         <ActivityIndicator size="large" color="#FF9800" />
         <Text style={{ marginTop: 10 }}>読み込み中...</Text>
       </View>
@@ -165,8 +165,9 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     backgroundColor:"white",
     borderRadius: 5,
-    padding:5,
-    textAlign:"center"
+    padding:10,
+    textAlign:"center",
+    alignSelf:"center",
   },
   taskText: {
     fontSize: 18,
@@ -182,7 +183,8 @@ const styles = StyleSheet.create({
     backgroundColor:"white",
     margin:5,
     padding:5,
-    borderRadius:5
+    borderRadius:5,
+    padding:10
   },
   
   deleteButton: {

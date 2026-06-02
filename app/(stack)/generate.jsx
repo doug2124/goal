@@ -1,5 +1,5 @@
 import { useState } from "react";
-
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   StyleSheet,
   Text,
@@ -10,7 +10,8 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
-  TouchableOpacity
+  TouchableOpacity,
+  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -21,10 +22,15 @@ function generateUUID() {
     return v.toString(16);
   });
 }
+export const options = {
+  headerShown:false,
+};
+
 
 export default function GeneratePage() {
   const [goal, setGoal] = useState("");
   const router = useRouter();
+  
   
   const fetchTasks = async () => {
     try {
@@ -58,57 +64,62 @@ export default function GeneratePage() {
   };
   
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-      >
-        <View style={styles.container}>
-          <View style={{backgroundColor:"white",borderRadius:10,padding:10,textAlign:"center"}}>
-          <Text style={styles.title}>GOAL HELPER</Text>
-          <Text style={styles.title}>AIがあなたの目的達成をサポートします。</Text>
-          </View>
-            <View style={styles.footerContainer}>
-              <View style={styles.main}>
-                <Text style={styles.title}>まずは目的を入力してください。</Text>
-
-                <TextInput
-                  style={styles.input}
-                  placeholder="例：日本語を上手くなりたい"
-                  value={goal}
-                  onChangeText={setGoal}
-                  returnKeyType="done"
-                  blurOnSubmit={true}
-                  onSubmitEditing={Keyboard.dismiss}
-                />
-                <TouchableOpacity style={styles.generateButton} onPress={fetchTasks}>
+    <SafeAreaView style={{ flex: 1 ,backgroundColor:"white" }}>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+        >
+          <ScrollView
+            contentContainerStyle={{ flexGrow: 1, padding: 24 }}
+            keyboardShouldPersistTaps="handled"
+            style={{ backgroundColor: "white" }}
+          >
+            <View style={styles.main}>
+              <Text style={styles.title}>{"   まずは目的を\n   入力してください"}</Text>
+  
+              <TextInput
+                style={styles.input}
+                placeholder="例：日本語を上手くなりたい"
+                value={goal}
+                onChangeText={setGoal}
+                returnKeyType="done"
+                blurOnSubmit={true}
+                onSubmitEditing={Keyboard.dismiss}
+              />
+  
+              <TouchableOpacity style={styles.generateButton} onPress={fetchTasks}>
                 <Text style={styles.generateButtonText}>タスク生成</Text>
               </TouchableOpacity>
-              </View>
-              </View>
-          </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+              <TouchableOpacity style={styles.generateButton} onPress={() => router.push("/goals")}>
+                <Text style={styles.generateButtonText}>保存済みの目的</Text>
+              </TouchableOpacity>
+            </View>
+  
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+    </SafeAreaView>
   );
 }
+  
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: "center",
-    padding: 24,
-    backgroundColor:"#D3D3D3"
+    padding: 24
   },
   main: {
-    flex: 1,
-    justifyContent: "center",
+    marginTop:20,
     width: "100%",
-    maxWidth: 960,
   },
   title: {
-    fontSize: 32,
+    fontSize: 40,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 100,
+    marginTop:40
   },
   input: {
     borderWidth: 1,
@@ -120,29 +131,18 @@ const styles = StyleSheet.create({
     backgroundColor:"white"
   },
   generateButton: {
-    flex: 1,
     backgroundColor: "#FF9800",
-    paddingVertical: 8,
+    paddingVertical: 12,
+    paddingHorizontal:20,
     borderRadius: 8,
     marginRight: 10,
-    alignItems: "center"
+    alignItems: "center",
+    alignSelf:"center",
+    marginTop:10
   },
   generateButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold"
-  },
-  footerContainer: {
-    position: "absolute",
-    bottom: 20,
-    left: 20,
-    right: 20,
-    backgroundColor: "white",
-    padding: 14,
-    borderRadius: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 6,
   },
 });
