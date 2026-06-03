@@ -2,6 +2,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, Button,TouchableOpacity,ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TouchableWithoutFeedback } from "react-native";
 
 export default function TasksDetails() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function TasksDetails() {
   const [tasks, setTasks] = useState([]);
   const [taskListState, setTaskListState] = useState([]);
   const [newTask, setNewTask] = useState("");
+  const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(null);
   const [loading, setLoading] = useState(false);
 
@@ -87,66 +89,100 @@ export default function TasksDetails() {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      
-      {loading ? (
+    {loading ? (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#FF9800" />
-        <Text style={{ marginTop: 10 }}>読み込み中...</Text>
+        <Text style={{ marginTop: 10 ,fontWeight:"bold",fontSize:25}}>読み込み中...</Text>
       </View>
     ) : (
-      <>
-      <ScrollView style={styles.container}>
-        <Text style={styles.title}>目的: {description}</Text>
+      <TouchableWithoutFeedback
+        onPress={() => {
+          if (isSelectionMode) {
+            setIsSelectionMode(false);
+            setSelectedTaskIndex(null);
+          }
+        }}
+      >
+        <View style={{ flex: 1 }}>
+          <ScrollView style={styles.container}>
+            <Text style={styles.title}>目的: {description}</Text>
   
-        {taskListState.map((task, index) => (
-          <View key={index} style={styles.taskItem}>
-            <Text style={styles.taskText}>• {task.description}</Text>
-            <TouchableOpacity
-                onPress={() => setSelectedTaskIndex(index)}
-                style={styles.deleteButton}
+            {taskListState.map((task, index) => (
+              <TouchableOpacity
+                key={index}
+                onLongPress={() => {
+                  setIsSelectionMode(true);
+                  setSelectedTaskIndex(index);
+                }}
+                style={[
+                  styles.taskItem,
+                  isSelectionMode &&
+                    selectedTaskIndex === index &&
+                    styles.taskItemSelected,
+                ]}
               >
-                <Text style={styles.deleteButtonText}>✕</Text>
-            </TouchableOpacity>
-          </View>
-        ))}
-      </ScrollView>
+                <Text style={styles.taskText}>• {task.description}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
   
-      <View style={styles.footerContainer}>
-        <Text style={{ fontSize: 18, fontWeight: "bold" }}>新しいタスクを追加</Text>
+          {isSelectionMode && (
+            <View style={styles.actionBar}>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                onPress={() => removeTask(selectedTaskIndex)}
+              >
+                <Text style={styles.deleteButtonText}>✕ 削除</Text>
+              </TouchableOpacity>
   
-        <View style={styles.addRow}>
-          <TextInput
-            style={styles.input}
-            placeholder="タスクを入力..."
-            value={newTask}
-            onChangeText={setNewTask}
-          />
+              <TouchableOpacity
+                style={styles.completeButton}
+                onPress={handleDone}
+              >
+                <Text style={styles.completeButtonText}>✓ 完了</Text>
+              </TouchableOpacity>
+            </View>
+          )}
   
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => {
-              if (newTask.trim().length === 0) return;
-              setTaskListState([...taskListState, { description: newTask }]);
-              setNewTask("");
-            }}
-          >
-            <Text style={styles.addButtonText}>追加</Text>
-          </TouchableOpacity>
+          {/* 追加バー（選択モードじゃない時だけ） */}
+          {!isSelectionMode && (
+            <View style={styles.footerContainer}>
+              <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+                新しいタスクを追加
+              </Text>
+  
+              <View style={styles.addRow}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="タスクを入力..."
+                  value={newTask}
+                  onChangeText={setNewTask}
+                />
+  
+                <TouchableOpacity
+                  style={styles.addButton}
+                  onPress={() => {
+                    if (newTask.trim().length === 0) return;
+                    setTaskListState([
+                      ...taskListState,
+                      { description: newTask },
+                    ]);
+                    setNewTask("");
+                  }}
+                >
+                  <Text style={styles.addButtonText}>追加</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.doneButton}
+                onPress={updateTask}>
+                  <Text style={styles.doneButtonText}>保存</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
-  
-        <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.doneButton} onPress={() => handleDone(tasks)}>
-            <Text style={styles.doneButtonText}>完了にする</Text>
-          </TouchableOpacity>
-  
-          <TouchableOpacity style={styles.homeButton} onPress={() => router.push("/")}>
-            <Text style={styles.homeButtonText}>ホームに戻る</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-      </>
-      )}
-    </SafeAreaView>
+      </TouchableWithoutFeedback>
+    )}
+  </SafeAreaView>
   );}
 
 const styles = StyleSheet.create({
@@ -186,12 +222,14 @@ const styles = StyleSheet.create({
     borderRadius:5,
     padding:10
   },
-  
+  taskItemSelected:{
+    backgroundColor:"#d0e8ff"
+  },
   deleteButton: {
+    minWidth:"40%",
     fontSize: 16,
     color: "red",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    padding:5,
     borderWidth: 1,
     borderColor: "red",
     borderRadius: 6,
@@ -199,9 +237,9 @@ const styles = StyleSheet.create({
     overflow: "hidden"
   },
   deleteButtonText: {
-    fontSize: 16,
+    fontSize: 20,
     color: "red",
-    fontWeight: "bold"
+    alignSelf:"center",
   },
   footerContainer: {
     position: "absolute",
@@ -253,30 +291,45 @@ const styles = StyleSheet.create({
   
   doneButton: {
     flex: 1,
-    backgroundColor: "#FF9800",
+    backgroundColor:"#32cd32",
+    paddingVertical: 8,
+    borderRadius: 8,
+    margin: 2,
+    alignItems: "center",
+    borderColor:"#00ff00",
+    borderWidth:1,
+  },
+  completeButton:{
+    minWidth:"40%",
     paddingVertical: 8,
     borderRadius: 8,
     marginRight: 10,
-    alignItems: "center"
+    alignItems: "center",
+    borderColor:"#00ff00",
+    borderWidth:1,
+    textAlign:"center",
+    padding:5,
   },
-  
+  completeButtonText:{
+    color:"#32cd32",
+    fontSize:20,
+    alignSelf:"center",
+  },
   doneButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold"
   },
-  
-  homeButton: {
-    flex: 1,
-    backgroundColor: "#4CAF50",
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: "center"
+  actionBar: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    padding: 15,
+    backgroundColor: "#fff",
+    borderTopWidth: 1,
+    borderColor: "#ccc",
   },
-  
-  homeButtonText: {
-    color: "white",
-    fontSize: 16,
-    fontWeight: "bold"
-  }
 });

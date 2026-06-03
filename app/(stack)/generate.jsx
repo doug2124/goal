@@ -92,8 +92,8 @@ export default function GeneratePage() {
               <TouchableOpacity style={styles.generateButton} onPress={fetchTasks}>
                 <Text style={styles.generateButtonText}>タスク生成</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.generateButton} onPress={() => router.push("/goals")}>
-                <Text style={styles.generateButtonText}>保存済みの目的</Text>
+              <TouchableOpacity style={styles.recordButton} onPress={() => router.push("/goals")}>
+                <Text style={styles.recordButtonText}>保存済みの目的</Text>
               </TouchableOpacity>
             </View>
   
@@ -126,23 +126,39 @@ const styles = StyleSheet.create({
     borderColor: "#ccc",
     padding: 12,
     borderRadius: 8,
+    marginTop:160,
     marginBottom: 20,
     fontSize: 18,
     backgroundColor:"white"
   },
   generateButton: {
+    width:"100%",
     backgroundColor: "#FF9800",
     paddingVertical: 12,
     paddingHorizontal:20,
     borderRadius: 8,
-    marginRight: 10,
     alignItems: "center",
     alignSelf:"center",
-    marginTop:10
+    marginTop:2,
   },
   generateButtonText: {
     color: "white",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "bold"
   },
+  recordButton:{
+    paddingVertical: 12,
+    paddingHorizontal:20,
+    borderRadius: 8,
+    width:"100%",
+    alignItems: "center",
+    alignSelf:"center",
+    marginTop:15,
+    backgroundColor:"#32cd32",
+  },
+  recordButtonText:{
+    color:"white",
+    fontSize:20,
+    fontWeight:"bold",
+  }
 });

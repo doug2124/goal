@@ -33,8 +33,8 @@ export default function GoalsPage() {
       <SafeAreaView style={{ flex: 1 ,backgroundColor:"white"}}>
         {loading ? (
           <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#FF9800" />
-            <Text style={{ marginTop: 10 }}>読み込み中...</Text>
+            <ActivityIndicator size="large" color="#FF9800"/>
+            <Text style={{fontSize:25, marginTop: 10 ,fontWeight:"bold"}}>読み込み中...</Text>
           </View>
         ) : (
           <ScrollView style={styles.container}>
