@@ -7,6 +7,21 @@ export default function GoalsPage() {
   const [goals, setGoals] = useState([]);
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+
+  async function deleteGoal(goalId) {
+    const response = await fetch("https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/deleteGoals", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ goalId })
+    });
+    console.log("Status:", response.status);
+
+    const data = await response.text();
+    console.log(data);
+    fetchGoals();
+    alert("目的を削除しました");
+  }
+  
   const fetchGoals = async () => {
     try {
       setLoading(true);
@@ -50,7 +65,15 @@ export default function GoalsPage() {
               },
             })}>
                 <Text style={styles.detailsButtonText}>詳細</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.deleteButton}
+                
+                onPress={()=>{deleteGoal(goal.goalId)
+                }}
+                >
+                <Text style={styles.deleteButtonText}>削除</Text>
+              </TouchableOpacity>
               </View>
             ))}
           </ScrollView>
@@ -93,12 +116,34 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 14,
     borderRadius: 8,
-    alignSelf:"center"
+    alignSelf:"center",
+    width:"40%",
   },
   
   detailsButtonText: {
     color: "white",
+    fontSize: 20,
+    fontWeight: "bold",
+    textAlign:"center",
+  },
+  deleteButton:{
+    marginTop:5,
     fontSize: 16,
-    fontWeight: "bold"
+    color: "red",
+    padding:5,
+    borderWidth: 1,
+    backgroundColor: "red",
+    borderColor:"red",
+    borderRadius: 6,
+    textAlign: "center",
+    overflow: "hidden",
+    alignSelf:"center",
+    width:"40%"
+  },
+  deleteButtonText: {
+    fontSize: 20,
+    color: "white",
+    alignSelf:"center",
+    fontWeight:"bold",
   },
 });

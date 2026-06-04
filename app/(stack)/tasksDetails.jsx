@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { View, Text, StyleSheet, ScrollView, TextInput, Button,TouchableOpacity,ActivityIndicator} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TouchableWithoutFeedback } from "react-native";
+import uuid from "react-native-uuid";
 
 export default function TasksDetails() {
   const router = useRouter();
@@ -14,8 +15,19 @@ export default function TasksDetails() {
   const [isSelectionMode, setIsSelectionMode] = useState(false);
   const [selectedTaskIndex, setSelectedTaskIndex] = useState(null);
   const [loading, setLoading] = useState(false);
+  const inProgressTasks = taskListState.filter(t => t.status !== "done");
+  const doneTasks = taskListState.filter(t => t.status === "done");
+  
+  async function insertTask(newItem){
 
-
+     const response = await fetch("https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/insertTask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newItem)
+    });
+    console.log("INSERT STATUS:", response.status);
+    console.log(await response.text());
+  }
   async function removeTask(index) {
     const task = taskListState[index];
 
@@ -29,9 +41,10 @@ export default function TasksDetails() {
       itemId: task.itemId
     })
   });
+  setIsSelectionMode(false);
   }
   async function updateTask(itemId, newDescription, newStatus) {
-    await fetch("https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/updateTask", {
+    const response =await fetch("https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/updateTasks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -41,24 +54,22 @@ export default function TasksDetails() {
         status: newStatus
       })
     });
+    console.log("UPDATED STATUS: ",response.status);
+    console.log(await response.text());
+    alert("タスク更新");
   }
   async function handleDone(task) {
-    if (selectedTaskIndex === null) return;
-
-    setTaskListState(prev => prev.filter((_, i) => i !== selectedTaskIndex));
+    if (!task) return;
 
     await updateTask(task.itemId, task.description, "done");
-
-    await fetch("https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/deleteTask", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      goalId,
-      itemId: task.itemId
-    })
-  });
-  setSelectedTaskIndex(null);
-  alert("目標とタスクを保存しました！");
+    setTaskListState(prev =>
+      prev.map(t =>
+        t.itemId === task.itemId ? { ...t, status: "done" } : t
+      )
+    );
+    setSelectedTaskIndex(null);
+    setIsSelectionMode(false);
+    alert("タスク完了！");
 }
 
   const fetchTasks = async () => {
@@ -104,12 +115,13 @@ export default function TasksDetails() {
         }}
       >
         <View style={{ flex: 1 }}>
-          <ScrollView style={styles.container}>
+        <ScrollView style={styles.container}>
             <Text style={styles.title}>目的: {description}</Text>
-  
-            {taskListState.map((task, index) => (
+
+            <Text style={styles.undoneTask}>進行中のタスク:</Text>
+            {inProgressTasks.map((task, index) => (
               <TouchableOpacity
-                key={index}
+                key={task.itemId}
                 onLongPress={() => {
                   setIsSelectionMode(true);
                   setSelectedTaskIndex(index);
@@ -124,27 +136,52 @@ export default function TasksDetails() {
                 <Text style={styles.taskText}>• {task.description}</Text>
               </TouchableOpacity>
             ))}
+            <Text style={styles.doneTask}>完了したタスク:</Text>
+            {doneTasks.map(task => (
+              <View
+                key={task.itemId}
+                style={[styles.taskItem, { opacity: 0.5 }]}
+              >
+                <Text style={styles.taskText}>✓ {task.description}</Text>
+              </View>
+            ))}
           </ScrollView>
-  
-          {isSelectionMode && (
-            <View style={styles.actionBar}>
-              <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => removeTask(selectedTaskIndex)}
-              >
-                <Text style={styles.deleteButtonText}>✕ 削除</Text>
-              </TouchableOpacity>
-  
-              <TouchableOpacity
-                style={styles.completeButton}
-                onPress={handleDone}
-              >
-                <Text style={styles.completeButtonText}>✓ 完了</Text>
-              </TouchableOpacity>
-            </View>
-          )}
-  
-          {/* 追加バー（選択モードじゃない時だけ） */}
+              {isSelectionMode && (
+              <View>
+                <TouchableOpacity
+                  style={styles.aiButton}
+                  onPress={() => {
+                    const task = inProgressTasks[selectedTaskIndex];
+                    router.push({
+                      pathname: "/aiAsk",
+                      params: {
+                        goal: description,
+                        task: task.description
+                      }
+                    });
+                  }}
+                >
+                  <Text style={styles.aiButtonText}>🤖 AIに聞く</Text>
+                </TouchableOpacity>
+
+                <View style={styles.actionBar}>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => removeTask(selectedTaskIndex)}
+                  >
+                    <Text style={styles.deleteButtonText}>✕ 削除</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity
+                    style={styles.completeButton}
+                    onPress={() => handleDone(inProgressTasks[selectedTaskIndex])}
+                  >
+                    <Text style={styles.completeButtonText}>✓ 完了</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+
           {!isSelectionMode && (
             <View style={styles.footerContainer}>
               <Text style={{ fontSize: 18, fontWeight: "bold" }}>
@@ -158,22 +195,26 @@ export default function TasksDetails() {
                   value={newTask}
                   onChangeText={setNewTask}
                 />
-  
                 <TouchableOpacity
-                  style={styles.addButton}
-                  onPress={() => {
-                    if (newTask.trim().length === 0) return;
-                    setTaskListState([
-                      ...taskListState,
-                      { description: newTask },
-                    ]);
-                    setNewTask("");
-                  }}
-                >
-                  <Text style={styles.addButtonText}>追加</Text>
-                </TouchableOpacity>
+                style={styles.addButton}
+                onPress={async () => {
+                  if (newTask.trim().length === 0) return;
+                
+                  const newItem = {
+                    goalId,
+                    itemId: uuid.v4(),
+                    itemText: newTask,
+                  };
+                
+                  await insertTask(newItem);
+                  await fetchTasks();
+                  setNewTask("");
+                }}
+              >
+                <Text style={styles.addButtonText}>追加</Text>
+              </TouchableOpacity>
                 <TouchableOpacity style={styles.doneButton}
-                onPress={updateTask}>
+                 onPress={() => updateTask()}>
                   <Text style={styles.doneButtonText}>保存</Text>
                 </TouchableOpacity>
               </View>
@@ -198,12 +239,26 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 10,
     backgroundColor:"white",
     borderRadius: 5,
     padding:10,
     textAlign:"center",
     alignSelf:"center",
+  },
+  undoneTask:{
+    fontSize:20,
+    backgroundColor:"white",
+    padding:5,
+    borderRadius:8,
+    margin:5,
+  },
+  doneTask:{
+    fontSize:20,
+    backgroundColor:"white",
+    padding:5,
+    borderRadius:8,
+    margin:5,
   },
   taskText: {
     fontSize: 18,
@@ -332,4 +387,22 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderColor: "#ccc",
   },
+  aiButton: {
+    position: "absolute",
+    bottom: 80,
+    left: 20,
+    right: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    borderColor: "#007BFF",
+    borderWidth: 1,
+    backgroundColor: "white",
+  },  
+  aiButtonText: {
+    color: "#007BFF",
+    fontSize: 20,
+    alignSelf: "center",
+  },
+
 });
