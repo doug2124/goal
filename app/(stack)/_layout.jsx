@@ -9,6 +9,7 @@ export default function Layout() {
         headerBackVisible: true,
         headerTitleAlign: "center",
         headerBackButtonDisplayMode: "minimal",
+        title:"",
       }}
     >
       <Stack.Screen name="goals" />

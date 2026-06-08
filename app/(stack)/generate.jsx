@@ -1,19 +1,19 @@
 import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
-  StyleSheet,
-  Text,
-  View,
-  TextInput,
-  Button,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
+  StyleSheet, Text, View, TextInput,
+  KeyboardAvoidingView, Platform,
+  TouchableWithoutFeedback, Keyboard,
   TouchableOpacity,
-  ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
+
+const ORANGE = "#F97316";
+const DARK   = "#1C1917";
+const MID    = "#78716C";
+const LIGHT  = "#FAFAF9";
+const WHITE  = "#FFFFFF";
+const BORDER = "#E7E5E4";
 
 function generateUUID() {
   return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, c => {
@@ -22,143 +22,143 @@ function generateUUID() {
     return v.toString(16);
   });
 }
-export const options = {
-  headerShown:false,
-};
 
+export const options = { headerShown: false };
 
 export default function GeneratePage() {
   const [goal, setGoal] = useState("");
+  const [isFocused, setIsFocused] = useState(false);
   const router = useRouter();
-  
-  
+
   const fetchTasks = async () => {
+    if (goal.trim().length === 0) return;
     try {
       const goalId = generateUUID();
       const response = await fetch(
         "https://pf44g8uhx8.execute-api.ap-northeast-1.amazonaws.com/prod/generateTasks",
         {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ goal }),
         }
       );
-  
       const text = await response.text();
       const data = JSON.parse(text);
-  
       router.push({
         pathname: "/tasks",
-        params: {
-          tasks: JSON.stringify(data.tasks),
-          goal: goal,
-          goalId:goalId,
-        },
+        params: { tasks: JSON.stringify(data.tasks), goal, goalId },
       });
-  
     } catch (error) {
       console.error("Error:", error);
     }
   };
-  
+
+  const ready = goal.trim().length > 0;
+
   return (
-    <SafeAreaView style={{ flex: 1 ,backgroundColor:"white" }}>
+    <SafeAreaView style={styles.safeArea}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <KeyboardAvoidingView
-          style={{ flex: 1 }}
+          style={styles.flex}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
         >
-          <ScrollView
-            contentContainerStyle={{ flexGrow: 1, padding: 24 }}
-            keyboardShouldPersistTaps="handled"
-            style={{ backgroundColor: "white" }}
-          >
-            <View style={styles.main}>
-              <Text style={styles.title}>{"   まずは目的を\n   入力してください"}</Text>
-  
+          <View style={styles.container}>
+
+            {/* Header */}
+            <View style={styles.header}>
+              <Text style={styles.eyebrow}>GOAL PLANNER</Text>
+              <Text style={styles.title}>目的を入力</Text>
+            </View>
+
+            {/* Input */}
+            <View style={styles.inputWrap}>
               <TextInput
-                style={styles.input}
+                style={[styles.input, isFocused && styles.inputFocused]}
                 placeholder="例：日本語を上手くなりたい"
+                placeholderTextColor={MID}
                 value={goal}
                 onChangeText={setGoal}
                 returnKeyType="done"
-                blurOnSubmit={true}
+                blurOnSubmit
                 onSubmitEditing={Keyboard.dismiss}
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
               />
-  
-              <TouchableOpacity style={styles.generateButton} onPress={fetchTasks}>
-                <Text style={styles.generateButtonText}>タスク生成</Text>
+            </View>
+
+            {/* Actions */}
+            <View style={styles.actions}>
+              <TouchableOpacity
+                style={[styles.primaryBtn, !ready && styles.primaryBtnDisabled]}
+                onPress={fetchTasks}
+                activeOpacity={0.8}
+                disabled={!ready}
+              >
+                <Text style={[styles.primaryBtnText, !ready && styles.primaryBtnTextDisabled]}>
+                  タスクを生成する
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.recordButton} onPress={() => router.push("/goals")}>
-                <Text style={styles.recordButtonText}>保存済みの目的</Text>
+
+              <TouchableOpacity
+                onPress={() => router.push("/goals")}
+                activeOpacity={0.6}
+              >
+                <Text style={styles.secondaryBtn}>保存済みの目的を見る</Text>
               </TouchableOpacity>
             </View>
-  
-          </ScrollView>
+
+          </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
-  
 
 const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: WHITE },
+  flex: { flex: 1 },
   container: {
     flex: 1,
-    alignItems: "center",
-    padding: 24
+    paddingHorizontal: 28,
+    justifyContent: "center",
+    gap: 40,
   },
-  main: {
-    marginTop:20,
-    width: "100%",
-  },
-  title: {
-    fontSize: 40,
-    fontWeight: "bold",
-    marginBottom: 100,
-    marginTop:40
-  },
+
+  /* Header */
+  header: { gap: 6 },
+  eyebrow: { fontSize: 11, fontWeight: "700", letterSpacing: 3, color: ORANGE },
+  title: { fontSize: 32, fontWeight: "800", color: DARK, letterSpacing: -0.8 },
+
+  /* Input */
+  inputWrap: {},
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 8,
-    marginTop:160,
-    marginBottom: 20,
-    fontSize: 18,
-    backgroundColor:"white"
+    marginTop:400,
+    borderBottomWidth: 1.5,
+    borderColor: BORDER,
+    paddingVertical: 14,
+    fontSize: 17,
+    color: DARK,
   },
-  generateButton: {
-    width:"100%",
-    backgroundColor: "#FF9800",
-    paddingVertical: 12,
-    paddingHorizontal:20,
-    borderRadius: 8,
+  inputFocused: { borderColor: ORANGE },
+
+  /* Actions */
+  actions: { gap: 20 },
+  primaryBtn: {
+    backgroundColor: ORANGE,
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: "center",
-    alignSelf:"center",
-    marginTop:2,
   },
-  generateButtonText: {
-    color: "white",
-    fontSize: 20,
-    fontWeight: "bold"
+  primaryBtnDisabled: { backgroundColor: BORDER },
+  primaryBtnText: { color: WHITE, fontSize: 16, fontWeight: "700", letterSpacing: 0.3 },
+  primaryBtnTextDisabled: { color: MID },
+
+  secondaryBtn: {
+    textAlign: "center",
+    fontSize: 14,
+    color: MID,
+    fontWeight: "600",
+    textDecorationLine: "underline",
   },
-  recordButton:{
-    paddingVertical: 12,
-    paddingHorizontal:20,
-    borderRadius: 8,
-    width:"100%",
-    alignItems: "center",
-    alignSelf:"center",
-    marginTop:15,
-    backgroundColor:"#32cd32",
-  },
-  recordButtonText:{
-    color:"white",
-    fontSize:20,
-    fontWeight:"bold",
-  }
 });
